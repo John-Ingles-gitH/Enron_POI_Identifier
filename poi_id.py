@@ -46,47 +46,34 @@ from time import time
 from sklearn import tree
 from sklearn.metrics import accuracy_score, precision_score, recall_score
 
-#lists for storing individual model accuracies, precisions, and recalls
-acc_list=[]
-prec_list=[]
-rec_list=[]
+#create training/testing split
+features_train, features_test, labels_train, labels_test = cross_validation.train_test_split(features, labels, test_size=0.1, random_state=1)
 
-#loop for running models with different random_state for each
-for n in range(1,100):
-    #create training/testing split
-    features_train, features_test, labels_train, labels_test = cross_validation.train_test_split(features, labels, test_size=0.1, random_state=n)
-    
-    #features selected
-    selector = SelectKBest(f_classif, k=4)
-    selector.fit(features_train, labels_train)
-    
-    #transformed
-    features_train = selector.transform(features_train)
-    features_test = selector.transform(features_test)
-    
-    #Decision Tree used as classifier
-    clf=tree.DecisionTreeClassifier()
-    
-    #Fit to training data
-    clf.fit(features_train,labels_train)
-    
-    #predictions made using test data
-    pred = clf.predict(features_test)
-    
-    #accuracy, precision, and recall calculated
-    acc = accuracy_score(pred, labels_test)
-    prec = precision_score(pred, labels_test)
-    recall = recall_score(pred, labels_test)
-    
-    acc_list.append(acc)
-    prec_list.append(prec)
-    rec_list.append(recall)
+#features selected
+selector = SelectKBest(f_classif, k=4)
+selector.fit(features_train, labels_train)
 
-#the mean accuracy, precision and recall of the 100 models is used in since the number of data points is low and
-#the chance of test sets with 0 poi is not trivial.
-print np.mean(acc_list)
-print np.mean(prec_list)
-print np.mean(rec_list)
+#Drop features not selected from features_list
+features_list_no_poi = features_list[1:]
+features_list = [i for (i, v) in zip(features_list_no_poi, selector.get_support()) if v]
+features_list.insert(0, "poi")
+#transformed
+features_train = selector.transform(features_train)
+features_test = selector.transform(features_test)
+  
+#Decision Tree used as classifier
+clf=tree.DecisionTreeClassifier()
+
+#Fit to training data
+clf.fit(features_train,labels_train)
+
+#predictions made using test data
+pred = clf.predict(features_test)
+
+#accuracy, precision, and recall calculated
+acc = accuracy_score(pred, labels_test)
+prec = precision_score(pred, labels_test)
+recall = recall_score(pred, labels_test)
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
 ### using our testing script. Check the tester.py script in the final project
@@ -105,4 +92,4 @@ features_train, features_test, labels_train, labels_test = \
 ### that the version of poi_id.py that you submit can be run on its own and
 ### generates the necessary .pkl files for validating your results.
 
-#dump_classifier_and_data(clf, my_dataset, features_list)
+dump_classifier_and_data(clf, my_dataset, features_list)
