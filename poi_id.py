@@ -47,33 +47,42 @@ from sklearn import tree
 from sklearn.metrics import accuracy_score, precision_score, recall_score
 
 #create training/testing split
-features_train, features_test, labels_train, labels_test = cross_validation.train_test_split(features, labels, test_size=0.1, random_state=1)
+#features_train, features_test, labels_train, labels_test = cross_validation.train_test_split(features, labels, test_size=0.1, random_state=1)
 
 #features selected
 selector = SelectKBest(f_classif, k=4)
-selector.fit(features_train, labels_train)
+selector.fit(features,labels)
+#selector.fit(features_train, labels_train)
 
 #Drop features not selected from features_list
 features_list_no_poi = features_list[1:]
 features_list = [i for (i, v) in zip(features_list_no_poi, selector.get_support()) if v]
 features_list.insert(0, "poi")
 #transformed
-features_train = selector.transform(features_train)
-features_test = selector.transform(features_test)
+#features_train = selector.transform(features_train)
+#features_test = selector.transform(features_test)
+
+
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import make_scorer
+scoring = {'Accuracy':make_scorer(accuracy_score),'Precision':make_scorer(precision_score),'Recall':make_scorer(recall_score)}
+parameters = {'criterion':('gini', 'entropy'), 'max_depth':[1, 5]}
+dt = tree.DecisionTreeClassifier(random_state=1)
+clf = GridSearchCV(dt, parameters,scoring=scoring, refit="Recall")
   
 #Decision Tree used as classifier
-clf=tree.DecisionTreeClassifier()
+#clf=tree.DecisionTreeClassifier(random_state=1)
 
 #Fit to training data
-clf.fit(features_train,labels_train)
+#clf.fit(features_train,labels_train)
 
 #predictions made using test data
-pred = clf.predict(features_test)
+#pred = clf.predict(features_test)
 
 #accuracy, precision, and recall calculated
-acc = accuracy_score(pred, labels_test)
-prec = precision_score(pred, labels_test)
-recall = recall_score(pred, labels_test)
+#acc = accuracy_score(pred, labels_test)
+#prec = precision_score(pred, labels_test)
+#recall = recall_score(pred, labels_test)
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
 ### using our testing script. Check the tester.py script in the final project
