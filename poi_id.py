@@ -44,6 +44,7 @@ from sklearn import cross_validation
 from sklearn.feature_selection import SelectKBest, f_classif
 from time import time
 from sklearn import tree
+from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import accuracy_score, precision_score, recall_score
 
 #create training/testing split
@@ -66,16 +67,17 @@ features_list.insert(0, "poi")
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import make_scorer
 scoring = {'Accuracy':make_scorer(accuracy_score),'Precision':make_scorer(precision_score),'Recall':make_scorer(recall_score)}
-parameters = {'criterion':('gini', 'entropy'), 'max_depth':[1, 5]}
-dt = tree.DecisionTreeClassifier(random_state=1)
-clf = GridSearchCV(dt, parameters,scoring=scoring, refit="Recall")
+#parameters = {'max_depth':[1,2,3,4,5],'min_samples_split':[2,3,4,5]}
+#dt = tree.DecisionTreeClassifier(random_state=1)
+#clf = GridSearchCV(dt, parameters,scoring=scoring,refit='Accuracy')
+clf = GaussianNB()
   
 #Decision Tree used as classifier
-#clf=tree.DecisionTreeClassifier(random_state=1)
+#clf=tree.DecisionTreeClassifier(max_depth=5, random_state=1)
 
 #Fit to training data
 #clf.fit(features_train,labels_train)
-
+#print(clf.best_params_)
 #predictions made using test data
 #pred = clf.predict(features_test)
 
@@ -83,6 +85,10 @@ clf = GridSearchCV(dt, parameters,scoring=scoring, refit="Recall")
 #acc = accuracy_score(pred, labels_test)
 #prec = precision_score(pred, labels_test)
 #recall = recall_score(pred, labels_test)
+
+#print acc
+#print prec
+#print recall
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
 ### using our testing script. Check the tester.py script in the final project
