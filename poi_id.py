@@ -3,22 +3,22 @@
 import sys
 import pickle
 import numpy as np
-import matplotlib.pyplot as plt
 
 sys.path.append("../tools/")
 
 from feature_format import featureFormat, targetFeatureSplit
 from tester import dump_classifier_and_data
-from sklearn.cross_validation import StratifiedShuffleSplit
+
 
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
 ### The first feature must be "poi".
 
-features_list = ["poi",'salary', 'deferral_payments', 'total_payments', 'bonus', 'deferred_income', 
-                 'total_stock_value', 'expenses', 'exercised_stock_options', 'other', 
-                 'long_term_incentive', 'restricted_stock','to_messages','from_poi_to_this_person',
-                 'from_messages', 'from_this_person_to_poi', 'shared_receipt_with_poi']
+features_list = ['poi','salary', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus',
+                 'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses',
+                 'exercised_stock_options', 'other', 'long_term_incentive', 'restricted_stock', 
+                 'director_fees','to_messages','from_poi_to_this_person', 'from_messages',
+                 'from_this_person_to_poi', 'shared_receipt_with_poi'] 
 
 PERF_FORMAT_STRING = "\
 \tAccuracy: {:>0.{display_precision}f}\tPrecision: {:>0.{display_precision}f}\t\
@@ -27,6 +27,8 @@ RESULTS_FORMAT_STRING = "\tTotal predictions: {:4d}\tTrue positives: {:4d}\tFals
 \tFalse negatives: {:4d}\tTrue negatives: {:4d}"
 
 def train_and_test(clf, dataset, feature_list, folds = 1000):
+    from sklearn.cross_validation import StratifiedShuffleSplit
+    
     data = featureFormat(dataset, feature_list, sort_keys = True)
     labels, features = targetFeatureSplit(data)
     cv = StratifiedShuffleSplit(labels, folds, random_state = 42)
@@ -109,7 +111,7 @@ def train_and_test(clf, dataset, feature_list, folds = 1000):
         print ""
     except:
         print "Got a divide by zero when trying out:", clf
-        print "Precision or recall may be undefined due to a lack of true positive predicitons."			 
+        print "Precision or recall may be undefined due to a lack of true positive predicitons."
 
 ### Load the dictionary containing the dataset
 with open("final_project_dataset.pkl", "r") as data_file:
@@ -121,6 +123,15 @@ data_dict.pop("TOTAL",0)
 
 ### Store to my_dataset for easy export below.
 my_dataset = data_dict
+abs_dict = {}
+for k1,v1 in data_dict.iteritems(): # the basic way
+    temp={}
+    for k2,v2 in v1.iteritems():
+        if isinstance(v2, int) and v2<0:
+            temp[k2]=abs(v2)
+        else:
+            temp[k2]=v2
+    abs_dict[k1]=temp
 
 ### Extract features and labels from dataset for local testing
 data = featureFormat(my_dataset, features_list, sort_keys = True)
@@ -132,58 +143,31 @@ labels, features = targetFeatureSplit(data)
 ### you'll need to use Pipelines. For more info:
 ### http://scikit-learn.org/stable/modules/pipeline.html
 
-# Provided to give you a starting point. Try a variety of classifiers.
-from sklearn import cross_validation
-from sklearn.feature_selection import SelectKBest, f_classif
-from time import time
-from sklearn import tree
-from sklearn.naive_bayes import GaussianNB
-from sklearn.metrics import accuracy_score, precision_score, recall_score
-
-#create training/testing split
-#features_train, features_test, labels_train, labels_test = cross_validation.train_test_split(features, labels, test_size=0.1, random_state=1)
-
 #features selected
+from sklearn.feature_selection import SelectKBest, f_classif
 selector = SelectKBest(f_classif, k=3)
 selector.fit(features,labels)
 print selector.scores_
-#selector.fit(features_train, labels_train)
 
-#Drop features not selected from features_list
+#Drop features not selected from features_list and print selected features
 features_list_no_poi = features_list[1:]
 features_list = [i for (i, v) in zip(features_list_no_poi, selector.get_support()) if v]
 features_list.insert(0, "poi")
 print features_list
-#transformed
-#features_train = selector.transform(features_train)
-#features_test = selector.transform(features_test)
-
-
+ 
+#Construct Classifier
+from sklearn import tree
+from sklearn.naive_bayes import GaussianNB
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import make_scorer
-scoring = {'Accuracy':make_scorer(accuracy_score),'Precision':make_scorer(precision_score),'Recall':make_scorer(recall_score)}
+#scoring = {'Accuracy':make_scorer(accuracy_score),'Precision':make_scorer(precision_score),'Recall':make_scorer(recall_score)}
 #parameters = {'max_depth':[1,2,3,4,5],'min_samples_split':[2,3,4,5]}
 #dt = tree.DecisionTreeClassifier(random_state=1)
 #clf = GridSearchCV(dt, parameters,scoring=scoring,refit='Accuracy')
 #clf = GaussianNB()
-  
-#Decision Tree used as classifier
+
 clf=tree.DecisionTreeClassifier(random_state=1)
 train_and_test(clf,my_dataset,features_list)
-#Fit to training data
-#clf.fit(features_train,labels_train)
-#print(clf.best_params_)
-#predictions made using test data
-#pred = clf.predict(features_test)
-
-#accuracy, precision, and recall calculated
-#acc = accuracy_score(pred, labels_test)
-#prec = precision_score(pred, labels_test)
-#recall = recall_score(pred, labels_test)
-
-#print acc
-#print prec
-#print recall
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
 ### using our testing script. Check the tester.py script in the final project
