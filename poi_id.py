@@ -9,37 +9,34 @@ sys.path.append("../tools/")
 from feature_format import featureFormat, targetFeatureSplit
 from tester import dump_classifier_and_data
 
-
-### Task 1: Select what features you'll use.
-### features_list is a list of strings, each of which is a feature name.
-### The first feature must be "poi".
-
 features_list = ['poi','salary', 'deferral_payments', 'total_payments', 'loan_advances', 'bonus',
                  'restricted_stock_deferred', 'deferred_income', 'total_stock_value', 'expenses',
                  'exercised_stock_options', 'other', 'long_term_incentive', 'restricted_stock', 
                  'director_fees','to_messages','from_poi_to_this_person', 'from_messages',
                  'from_this_person_to_poi', 'shared_receipt_with_poi'] 
 
-PERF_FORMAT_STRING = "\
-\tAccuracy: {:>0.{display_precision}f}\tPrecision: {:>0.{display_precision}f}\t\
-Recall: {:>0.{display_precision}f}\tF1: {:>0.{display_precision}f}\tF2: {:>0.{display_precision}f}"
-RESULTS_FORMAT_STRING = "\tTotal predictions: {:4d}\tTrue positives: {:4d}\tFalse positives: {:4d}\
-\tFalse negatives: {:4d}\tTrue negatives: {:4d}"
+
 
 def train_and_test(clf, dataset, feature_list, folds = 1000):
+    
+    PERF_FORMAT_STRING = "\
+    \tAccuracy: {:>0.{display_precision}f}\tPrecision: {:>0.{display_precision}f}\t\
+    Recall: {:>0.{display_precision}f}\tF1: {:>0.{display_precision}f}\tF2: {:>0.{display_precision}f}"
+    RESULTS_FORMAT_STRING = "\tTotal predictions: {:4d}\tTrue positives: {:4d}\tFalse positives: {:4d}\
+    \tFalse negatives: {:4d}\tTrue negatives: {:4d}"
+    
     from sklearn.cross_validation import StratifiedShuffleSplit
     
     data = featureFormat(dataset, feature_list, sort_keys = True)
     labels, features = targetFeatureSplit(data)
+    
     cv = StratifiedShuffleSplit(labels, folds, random_state = 42)
+    
     true_negatives = 0
     false_negatives = 0
     true_positives = 0
     false_positives = 0
-    true_negatives_train = 0
-    false_negatives_train = 0
-    true_positives_train = 0
-    false_positives_train = 0
+    
     for train_idx, test_idx in cv: 
         features_train = []
         features_test  = []
@@ -70,20 +67,6 @@ def train_and_test(clf, dataset, feature_list, folds = 1000):
                 print "All predictions should take value 0 or 1."
                 print "Evaluating performance for processed predictions:"
                 break
-        for prediction, truth in zip(training_predicitons, labels_train):
-            if prediction == 0 and truth == 0:
-                true_negatives_train += 1
-            elif prediction == 0 and truth == 1:
-                false_negatives_train += 1
-            elif prediction == 1 and truth == 0:
-                false_positives_train += 1
-            elif prediction == 1 and truth == 1:
-                true_positives_train += 1
-            else:
-                print "Warning: Found a predicted label not == 0 or 1."
-                print "All predictions should take value 0 or 1."
-                print "Evaluating performance for processed predictions:"
-                break
     try:
         total_predictions = true_negatives + false_negatives + false_positives + true_positives
         accuracy = 1.0*(true_positives + true_negatives)/total_predictions
@@ -99,26 +82,13 @@ def train_and_test(clf, dataset, feature_list, folds = 1000):
         print "Got a divide by zero when trying out:", clf
         print "Precision or recall may be undefined due to a lack of true positive predicitons."
 
-    try:
-        total_predictions_train = true_negatives_train + false_negatives_train + false_positives_train + true_positives_train
-        accuracy_train = 1.0*(true_positives_train + true_negatives_train)/total_predictions_train
-        precision_train = 1.0*true_positives_train/(true_positives_train+false_positives_train)
-        recall_train = 1.0*true_positives_train/(true_positives_train+false_negatives_train)
-        f1_train = 2.0 * true_positives_train/(2*true_positives_train + false_positives_train+false_negatives_train)
-        f2_train = (1+2.0*2.0) * precision_train*recall_train/(4*precision_train + recall_train)
-        print PERF_FORMAT_STRING.format(accuracy_train, precision_train, recall_train, f1_train, f2_train, display_precision = 5)
-        print RESULTS_FORMAT_STRING.format(total_predictions_train, true_positives_train, false_positives_train, false_negatives_train, true_negatives_train)
-        print ""
-    except:
-        print "Got a divide by zero when trying out:", clf
-        print "Precision or recall may be undefined due to a lack of true positive predicitons."
-
 ### Load the dictionary containing the dataset
 with open("final_project_dataset.pkl", "r") as data_file:
     data_dict = pickle.load(data_file)
 
-### Task 2: Remove outliers
+### Remove outlier
 data_dict.pop("TOTAL",0)
+
 ### Task 3: Create new feature(s)
 
 ### Store to my_dataset for easy export below.
@@ -147,39 +117,24 @@ labels, features = targetFeatureSplit(data)
 from sklearn.feature_selection import SelectKBest, f_classif
 selector = SelectKBest(f_classif, k=3)
 selector.fit(features,labels)
+print "Selector Scores"
 print selector.scores_
 
 #Drop features not selected from features_list and print selected features
 features_list_no_poi = features_list[1:]
 features_list = [i for (i, v) in zip(features_list_no_poi, selector.get_support()) if v]
 features_list.insert(0, "poi")
+print "Features Selected"
 print features_list
  
 #Construct Classifier
 from sklearn import tree
 from sklearn.naive_bayes import GaussianNB
-from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import make_scorer
-#scoring = {'Accuracy':make_scorer(accuracy_score),'Precision':make_scorer(precision_score),'Recall':make_scorer(recall_score)}
-#parameters = {'max_depth':[1,2,3,4,5],'min_samples_split':[2,3,4,5]}
-#dt = tree.DecisionTreeClassifier(random_state=1)
-#clf = GridSearchCV(dt, parameters,scoring=scoring,refit='Accuracy')
+
 #clf = GaussianNB()
 
 clf=tree.DecisionTreeClassifier(random_state=1)
 train_and_test(clf,my_dataset,features_list)
-
-### Task 5: Tune your classifier to achieve better than .3 precision and recall 
-### using our testing script. Check the tester.py script in the final project
-### folder for details on the evaluation method, especially the test_classifier
-### function. Because of the small size of the dataset, the script uses
-### stratified shuffle split cross validation. For more info: 
-### http://scikit-learn.org/stable/modules/generated/sklearn.cross_validation.StratifiedShuffleSplit.html
-
-# Example starting point. Try investigating other evaluation techniques!
-from sklearn.cross_validation import train_test_split
-features_train, features_test, labels_train, labels_test = \
-    train_test_split(features, labels, test_size=0.3, random_state=42)
 
 ### Task 6: Dump your classifier, dataset, and features_list so anyone can
 ### check your results. You do not need to change anything below, but make sure
