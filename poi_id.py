@@ -93,15 +93,6 @@ data_dict.pop("TOTAL",0)
 
 ### Store to my_dataset for easy export below.
 my_dataset = data_dict
-abs_dict = {}
-for k1,v1 in data_dict.iteritems(): # the basic way
-    temp={}
-    for k2,v2 in v1.iteritems():
-        if isinstance(v2, int) and v2<0:
-            temp[k2]=abs(v2)
-        else:
-            temp[k2]=v2
-    abs_dict[k1]=temp
 
 ### Extract features and labels from dataset for local testing
 data = featureFormat(my_dataset, features_list, sort_keys = True)
