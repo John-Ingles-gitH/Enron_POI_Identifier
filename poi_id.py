@@ -52,7 +52,6 @@ def train_and_test(clf, dataset, feature_list, folds = 1000):
         ### fit the classifier using training set, and test on test set
         clf.fit(features_train, labels_train)
         predictions = clf.predict(features_test)
-        training_predicitons = clf.predict(features_train)
         for prediction, truth in zip(predictions, labels_test):
             if prediction == 0 and truth == 0:
                 true_negatives += 1
@@ -74,7 +73,9 @@ def train_and_test(clf, dataset, feature_list, folds = 1000):
         recall = 1.0*true_positives/(true_positives+false_negatives)
         f1 = 2.0 * true_positives/(2*true_positives + false_positives+false_negatives)
         f2 = (1+2.0*2.0) * precision*recall/(4*precision + recall)
+        print "\n"
         print clf
+        print "\n"
         print PERF_FORMAT_STRING.format(accuracy, precision, recall, f1, f2, display_precision = 5)
         print RESULTS_FORMAT_STRING.format(total_predictions, true_positives, false_positives, false_negatives, true_negatives)
         print ""
@@ -108,6 +109,7 @@ labels, features = targetFeatureSplit(data)
 from sklearn.feature_selection import SelectKBest, f_classif
 selector = SelectKBest(f_classif, k=3)
 selector.fit(features,labels)
+print "\n"
 print "Selector Scores"
 print selector.scores_
 
@@ -115,16 +117,23 @@ print selector.scores_
 features_list_no_poi = features_list[1:]
 features_list = [i for (i, v) in zip(features_list_no_poi, selector.get_support()) if v]
 features_list.insert(0, "poi")
+print "\n"
 print "Features Selected"
 print features_list
+print "\n"
  
 #Construct Classifier
 from sklearn import tree
 from sklearn.naive_bayes import GaussianNB
 
-#clf = GaussianNB()
-
 clf=tree.DecisionTreeClassifier(random_state=1)
+print "DecisionTreeClassifier"
+print "______________________"
+train_and_test(clf,my_dataset,features_list)
+print "\n"
+clf=GaussianNB()
+print "Gaussian Naive Bayes"
+print "____________________"
 train_and_test(clf,my_dataset,features_list)
 
 ### Task 6: Dump your classifier, dataset, and features_list so anyone can
