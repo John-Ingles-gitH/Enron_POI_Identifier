@@ -1,7 +1,7 @@
-#Enron Machine Learning Project
-###John Ingles
+# Enron Machine Learning Project
+### John Ingles
 
-##Question 1
+## Question 1
 
 The goal of this project was to use machine learning techniques to create a model
 that would predict whether or not someone was a 'person of interest' using data
@@ -10,7 +10,7 @@ features for each person.
 
 The features are:
 
-####Financial
+#### Financial
 
  * salary
  * deferral_payments
@@ -27,7 +27,7 @@ The features are:
  * restricted_stock
  * director_fees
 
-####Email
+#### Email
  
  * to_messages
  * email_address
@@ -36,7 +36,7 @@ The features are:
  * from_this_person_to_poi
  * shared_receipt_with_poi
 
-####POI Label
+#### POI Label
  
  * poi (Boolean, represented as integer)
  
@@ -56,7 +56,7 @@ A preliminary look at the data set identified several names that weren't people.
  
 These values were dropped since they clearly weren't employees.
 
-##Question 2
+## Question 2
 
 The first step to building a machine learning model (after cleaning the data) is
 to determine which features will be included and how many.  For this project, I 
@@ -97,7 +97,7 @@ After running the selection, the 10 best features with their scores were:
  * restricted_stock - 8.98
  * shared_receipt_with_poi - 8.84
 
-##Question 3
+## Question 3
 
 After selecting the features, I modeled the data with `LogisticRegression` and
 `DecisionTreeClassifier`.  The performance of each classifier when using the
@@ -111,7 +111,7 @@ Decision Tree | 0.86300 | 0.48995 | 0.67000 | 1000
 Since it had higher scores for all three tests, I ending up using the
 `DecisionTreeClassifier` even though it took much longer to run.
 
-##Question 4
+## Question 4
 
 Tuning the parameters of an algorithm is the process of optimizing it's performance
 with respect to a specific data set.  If no tuning is done, you risk modeling an
@@ -129,7 +129,7 @@ The best model as found by `GridSearchCV` was:
  * max_depth - 2
  * criterion - 'entropy'
 
-##Question 5
+## Question 5
 
 Validation is when you check the predictive power of your model using data that
 wasn't used to train it.  If you try to test your model using the data that you
@@ -147,7 +147,7 @@ splits were likely to have zero 'poi' in them.  With `StratifiedShuffleSplit`,
 I could test the performance of 1000 different train/test splits and keep the one
 that performed best.
 
-##Question 6
+## Question 6
 
 The final `DecisionTreeClassifier` model was tested using the testing script
 provided by Udacity.  The metrics evaluated were accuracy, precision, and recall,
